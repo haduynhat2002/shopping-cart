@@ -4,8 +4,14 @@
 namespace App\Http\Controllers;
 
 use App\Models\Product;
+use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Session;
+use App\Models\Order;
+use App\Models\Order_detail;
+use Carbon\Carbon;
+use Illuminate\Support\Facades\DB;
+
 
 
 class ShoppingCardController extends Controller
@@ -77,5 +83,60 @@ class ShoppingCardController extends Controller
             Session::put('shoppingCart', $shoppingCart);
             return redirect('/shopping/cart')->with('remove', 'Xoá sản phẩm khỏi giỏ hàng thành công!');
         }
+    }
+    public function save(Request $request) {
+        //shoppingCart(cartItem1, cartItem2)
+        //kiểm tra thông tin giỏ hàng, nếu không có sản phẩm trả về trang products.
+        if(!Session::has('shoppingCart') || count(Session::get('shoppingCart')) == 0) {
+            Session::flash('error-msg','hiện  không có sản phẩm nào trong giỏ hàng');
+            return redirect('/shopping/list');
+        }
+        // chuyển đổi từ shopping cart sang order, từng cartItem sẽ chuyển thành order detail
+        $shoppingCart = Session::get('shoppingCart');
+        $order = new Order();
+        $order->totalPrice = 0;
+        $order->customerId = 1;
+        $order->shipName = $request->get('fullName');
+        $order->shipPhone = $request->get('phone');
+        $order->shipAddress = $request->get('address');
+        $order->note = $request->get('note');
+        $order->isCheckout = false;
+        $order->created_at = Carbon::now();
+        $order->updated_at = Carbon::now();
+        $order->status = 0;
+        $orderDetails = [];
+        $messageError = '';
+        foreach ($shoppingCart as $cartItem) {
+            $product = Product::find($cartItem->id);
+            if ($product == null) {
+                $messageError = ' có lỗi xảy ra, sản phẩm với id'. $cartItem->id. 'không tồn tại hoặc đã bị xóa';
+                break;
+            }
+            $orderDetail = new Order_detail(); // hiên tại chưa thể order id vì chưa lưu
+            $orderDetail->productId = $product->id;
+            $orderDetail->unitPrice = $product->price;
+            $orderDetail->quantity = $product->quantity * $orderDetail->unitPrice;
+            array_push($orderDetails, $orderDetail);
+        }
+        if (count($orderDetails) == 0) {
+            Session::flash('error-msg', $messageError);
+            return redirect('/shopping/list');
+        }
+        try {
+            DB::beginTransaction();
+            $order->save();
+            $orderDetailsArray = [];
+            foreach ($orderDetails as $orderDetail) {
+                $orderDetail->orderId = $order->id;
+                array_push($orderDetail, $orderDetail->toArray());
+            }
+            Order_detail::insert($orderDetailsArray);
+            DB::commit();
+            Session::forget('shopping_cart');
+            Session::flash('success-msg','lưu hơn hàng thành công!');
+        } catch (Exception $e) {
+            DB::rollBack('error-msg', 'lưu đơn hàng thất bại');
+        }
+        return redirect('/shopping/list');
     }
 }
