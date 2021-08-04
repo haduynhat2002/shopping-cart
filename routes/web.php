@@ -24,3 +24,4 @@ Route::post('/shopping/create', [\App\Http\Controllers\ProductController::class,
 Route::get('/shopping/add', [\App\Http\Controllers\ShoppingCardController::class, 'add'])->name('nhat');
 Route::get('/shopping/cart', [\App\Http\Controllers\ShoppingCardController::class, 'show']);
 Route::get('/shopping/remove', [\App\Http\Controllers\ShoppingCardController::class, 'remove']);
+Route::get('/shopping/save', [\App\Http\Controllers\ShoppingCardController::class, 'save']);
