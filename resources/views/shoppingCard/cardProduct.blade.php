@@ -67,9 +67,6 @@
         </tbody>
     </table>
     <div class="w3-container row">
-        <div class="col-7">
-            <h3>Total Price: <span  style="color: red">€{{$totalPrice}}</span></h3>
-        </div>
         <div class="col-5">
             <div class="w3-card-4">
                 <div class="w3-container w3-dark">
@@ -79,20 +76,21 @@
                 <form class="w3-container" method="post" action="/shopping/save">
                     @csrf
                     <div class="m-0 mt-3">
-                        <input class="w3-input" type="text" name="shipName">
                         <label>Ship Name</label>
+                        <input class="w3-input" type="text" name="shipName">
+
                     </div>
                     <div class="m-0">
-                        <input class="w3-input" type="text" name="shipAddress">
                         <label>Address</label>
+                        <input class="w3-input" type="text" name="shipAddress">
                     </div>
                     <div class="m-0">
-                        <input class="w3-input" type="text" name="shipPhone">
                         <label>Phone</label>
+                        <input class="w3-input" type="text" name="shipPhone">
                     </div>
                     <div class="mb-3">
-                        <input class="w3-input" type="text" name="note">
                         <label>Note</label>
+                        <input class="w3-input" type="text" name="note">
                     </div>
                     <div class="row ml-1">
                         <button class="btn btn-dark mb-3 mr-3">Submit Order</button>
